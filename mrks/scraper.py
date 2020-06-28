@@ -1,5 +1,5 @@
 import re
-from urllib.parse import urljoin, quote_plus
+from urllib.parse import quote_plus, urljoin
 
 import requests
 from bs4 import BeautifulSoup
