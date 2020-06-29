@@ -47,7 +47,7 @@ def scrape() -> "Iterator[Dict[str, Union[str, int]]]":
             "mrkoll_link": urljoin(MRKOLL_BASE_URL, person.attrs["href"]),
             "flashback_link": FLASHBACK_BASE_URL + search_term,
             "ddg_link": DDG_BASE_URL + search_term,
-            "facebook_link": FACEBOOK_BASE_URL + search_term,
+            "facebook_link": FACEBOOK_BASE_URL + make_search_term(name),
         }
         yield result
 
