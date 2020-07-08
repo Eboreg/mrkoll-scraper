@@ -4,6 +4,7 @@
     {% for person in persons %}
     <li>
         <a href="{{ person.mrkoll_link }}">{{ person.name }}, {{ person.location }}</a>
+        {% if person.last_placement %}({{ person.last_placement }}){% endif %}
         &ndash; {{ person.search_count }} searches<br>
         Search on:
         <a href="{{ person.ddg_link }}">Duckduckgo</a> |

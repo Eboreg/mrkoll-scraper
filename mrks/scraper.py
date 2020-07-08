@@ -12,7 +12,7 @@ from feedgen.feed import FeedGenerator
 from jinja2 import Environment, PackageLoader, select_autoescape
 
 if TYPE_CHECKING:
-    from typing import List, Iterator, Dict, Union
+    from typing import List, Dict, Union, Optional
 
 
 MRKOLL_BASE_URL = "https://mrkoll.se/"
@@ -59,32 +59,50 @@ class Entry:
                 db["entries"] = {}
             db["entries"][self.date_str] = self
 
-    def _extract_data(self) -> "Iterator[Dict[str, Union[str, int]]]":
-        if not hasattr(self, "raw_html"):
-            self.fetch()
-        soup = BeautifulSoup(self.raw_html, "html.parser")
+    def _extract_data(self, raw_html) -> "List[Dict[str, Union[str, int]]]":
+        soup = BeautifulSoup(raw_html, "html.parser")
         # MrKoll's HTML is broken (the p.infoLine2 tags are not closed)
         person_list = soup.select(".infoLine2 a")
+        results = []
         for person in person_list:
             name, location = person.select_one("span.topp1").contents
             name = name.text
             location = re.sub(r"^\si\s", "", location)
             search_term = quote_plus(name)
-            result = {
+            search_term_location = quote_plus(name + " " + location) if location else search_term
+            results.append({
                 "name": name,
                 "location": location,
                 "search_count": int(re.sub(r"\D", "", person.select_one("span.topp2").text)),
                 "mrkoll_link": urljoin(MRKOLL_BASE_URL, person.attrs["href"]),
                 "flashback_link": FLASHBACK_BASE_URL + search_term,
-                "ddg_link": DDG_BASE_URL + search_term,
+                "ddg_link": DDG_BASE_URL + search_term_location,
                 "facebook_link": FACEBOOK_BASE_URL + search_term,
-            }
-            yield result
+            })
+        return results
+
+    def _get_last_entry(self) -> "Optional[Entry]":
+        with shelve.open(SHELVE_DB) as db:
+            try:
+                return [db["entries"][key] for key in sorted(db["entries"]) if key < self.date_str][-1]
+            except (IndexError, KeyError):
+                return None
 
     def _generate_entry_html(self) -> str:
         jinja = Environment(loader=PackageLoader("mrks", "templates"), autoescape=select_autoescape(["html"]))
         template = jinja.get_template("entry.html")
-        return template.render({"persons": self._extract_data(), "date": self.date_str})
+        persons = self._extract_data(self.raw_html)
+        last_entry = self._get_last_entry()
+        if last_entry is not None:
+            persons_last_entry = self._extract_data(last_entry.raw_html)
+            for person in persons:
+                last_placement = "NY"
+                for idx, person_last_entry in enumerate(persons_last_entry):
+                    if person["mrkoll_link"] == person_last_entry["mrkoll_link"]:
+                        last_placement = str(idx + 1)
+                        break
+                person["last_placement"] = last_placement
+        return template.render({"persons": persons, "date": self.date_str})
 
 
 def get_entries() -> "List[Entry]":
@@ -115,7 +133,3 @@ def regenerate():
 
 def scrape():
     Entry.fetch_and_save()
-
-
-if __name__ == "__main__":
-    print(generate_rss().decode())

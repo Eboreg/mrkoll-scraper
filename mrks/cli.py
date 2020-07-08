@@ -2,7 +2,7 @@
 
 import argparse
 
-from mrks.scraper import regenerate, scrape
+from mrks.scraper import regenerate, scrape, generate_rss
 
 
 def main():
@@ -22,8 +22,7 @@ def main():
         print("... done!")
 
     if not args.regenerate and not args.scrape:
-        print("Nothing to do!")
-        parser.print_help()
+        print(generate_rss().decode())
 
 
 if __name__ == "__main__":

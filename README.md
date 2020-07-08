@@ -28,7 +28,7 @@ Iterates through the saved lists and re-generates `FeedEntry`'s from the raw HTM
 
 `mrks.wsgi` contains a beautifully simple WSGI application, that simply outputs an RSS feed based on the data currently saved.
 
-### Cron (not really tested yet!)
+### Cron
 
 Crontab to run `--scrape` every Monday at midnight:
 
