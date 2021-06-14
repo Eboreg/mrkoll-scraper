@@ -96,7 +96,7 @@ class Entry:
         if last_entry is not None:
             persons_last_entry = self._extract_data(last_entry.raw_html)
             for person in persons:
-                last_placement = "NY"
+                last_placement = "NEW"
                 for idx, person_last_entry in enumerate(persons_last_entry):
                     if person["mrkoll_link"] == person_last_entry["mrkoll_link"]:
                         last_placement = str(idx + 1)
