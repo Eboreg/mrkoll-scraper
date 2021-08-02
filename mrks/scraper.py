@@ -17,6 +17,7 @@ if TYPE_CHECKING:
 
 MRKOLL_BASE_URL = "https://mrkoll.se/"
 SWEDEN_TOPLIST_URL = MRKOLL_BASE_URL + "topplistor/sverigetoppen/"
+SWEDEN_TOPLIST_YESTERDAY_URL = SWEDEN_TOPLIST_URL + "?t=2"
 DDG_BASE_URL = "https://duckduckgo.com/?q="
 FLASHBACK_BASE_URL = "https://www.flashback.org/sok/?query="
 FACEBOOK_BASE_URL = "https://www.facebook.com/search/people/?q="
@@ -46,6 +47,13 @@ class Entry:
 
     def fetch(self):
         self.raw_html = requests.get(SWEDEN_TOPLIST_URL).content
+        # Ugly hack; on the 1st of each month the list is empty and we are
+        # told to get yesterday's list instead. So do a quick check for that
+        # here and fetch yesterday's list if necessary.
+        soup = BeautifulSoup(self.raw_html, "html.parser")
+        person_list = soup.select(".infoLine2 a")
+        if not person_list:
+            self.raw_html = requests.get(SWEDEN_TOPLIST_YESTERDAY_URL).content
 
     def generate_feed_entry(self):
         self.feed_entry = FeedEntry()
