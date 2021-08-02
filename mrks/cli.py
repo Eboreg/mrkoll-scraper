@@ -2,6 +2,7 @@
 
 import argparse
 
+from mrks import __version__
 from mrks.scraper import regenerate, scrape, generate_rss
 
 
@@ -9,6 +10,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("-s", "--scrape", action="store_true", help="Scrape & save results")
     parser.add_argument("-r", "--regenerate", action="store_true", help="Regenerate entries from saved raw HTML")
+    parser.add_argument("-V", "--version", action="version", version="mrkoll-scraper " + __version__)
 
     args = parser.parse_args()
 
